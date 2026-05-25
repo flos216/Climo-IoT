@@ -1,7 +1,13 @@
+# Climo
 
-<img width="2531" height="1265" alt="image" src="https://github.com/user-attachments/assets/bb90759c-6087-4f12-b231-e2549d02f2e2" />
-<img width="2527" height="1262" alt="image" src="https://github.com/user-attachments/assets/5c35c57b-690d-45b1-aeed-bdf2a00917fe" />
+IoT 기반 실시간 온·습도 모니터링 시스템
 
+## Preview
+
+<p align="center">
+  <img src="./readme/light.png" width="45%">
+  <img src="./readme/dark.png" width="45%">
+</p> 
 
 ## 프로젝트 소개
 
@@ -32,7 +38,7 @@ climo/
 ├── public/
 ├── server/
 │   ├── temp_humi.py
-│   ├── .env
+│   ├── .env.example
 │   └── firebase-service-account.json
 ├── package.json
 └── README.md
@@ -87,7 +93,10 @@ npm run build
 pip install -r requirements.txt
 python temp_humi.py
 ```
---- # 환경 변수 프로젝트 실행 전 .env 파일 생성이 필요합니다.
+--- 
+# 환경 변수
+
+ 프로젝트 실행 전 .env 파일 생성이 필요합니다.
 
 ## Frontend (.env)
 
@@ -97,13 +106,15 @@ VITE_FIREBASE_AUTH_DOMAIN=
 VITE_FIREBASE_PROJECT_ID=
 VITE_FIREBASE_STORAGE_BUCKET=
 VITE_FIREBASE_MESSAGING_SENDER_ID=
-VITE_FIREBASE_APP_ID= VITE_FIREBASE_MEASUREMENT_ID=
+VITE_FIREBASE_APP_ID= 
+VITE_FIREBASE_MEASUREMENT_ID=
 VITE_FIREBASE_VAPID_KEY=
 ```
 
 ## Backend (server/.env)
-
+```env
 DATABASE_URL=
+```
 
 ## 트러블 슈팅
 
@@ -111,8 +122,13 @@ DATABASE_URL=
 
 FCM 설정 후 브라우저 콘솔에서 아래 오류 발생: The script has an unsupported MIME type ('text/html')
 
-원인 
-Flask가 firebase-messaging-sw.js 파일 대신 React의 index.html을 반환하고 있었음. 해결 Flask에서 send_from_directory()를 이용하여 Service Worker 파일을 직접 반환하도록 수정.
+### 원인 
+Flask가 firebase-messaging-sw.js 파일 대신
+React의 index.html을 반환하고 있었음. 
+
+### 해결 
+Flask에서 send_from_directory()를 이용하여 
+Service Worker 파일을 직접 반환하도록 수정.
 
 ```python
 @app.route('/firebase-messaging-sw.js')
