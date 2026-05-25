@@ -43,7 +43,7 @@ const Chart = () => {
   const showToast = useToast();
   const [viewType, setViewType] = useState("realtime");
 
-  // [추가] 런타임 글로벌 테마 감지를 위한 상태 및 참조 포인터 수립
+  // 🌟 [추가] 런타임 글로벌 테마 감지를 위한 상태 및 참조 포인터 수립
   const [currentTheme, setCurrentTheme] = useState("light");
   const chartRef = useRef(null);
 
@@ -69,7 +69,7 @@ const Chart = () => {
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  // [추가] <html> 태그의 다크모드 클래스 변화를 실시간으로 감지하는 옵저버 파이프라인
+  // 🌟 [추가] <html> 태그의 다크모드 클래스 변화를 실시간으로 감지하는 옵저버 파이프라인
   useEffect(() => {
     const isDark = document.documentElement.classList.contains("dark");
     setCurrentTheme(isDark ? "dark" : "light");
@@ -288,7 +288,7 @@ const Chart = () => {
       {/* 대시보드 코어 콘텐츠 출력 컨테이너 */}
       <div className="flex-grow overflow-y-auto">
         {viewType === "alerts" ? (
-          <div className="flex flex-col h-full rounded p-4 gap-4 text-[var(--color-text-primary)]">
+          <div className="flex flex-col h-full bg-body rounded p-4 gap-4">
             {/* 달력 캘린더 헤더 */}
             <div className="text-center font-bold text-lg  pb-2 border-b">
               {year} / {String(month + 1).padStart(2, "0")}
@@ -311,8 +311,7 @@ const Chart = () => {
                 const hasAlert = !!dayData;
                 const isSelected = selectedDate === dateStr;
 
-                let bgClass =
-                  "bg-[var(--color-calbg)] text-[var(--color-text-primary)]";
+                let bgClass = "bg-[var(--color-calbg)] text-gray-700";
                 if (hasAlert) {
                   bgClass =
                     dayData.level === "위험"
@@ -339,7 +338,7 @@ const Chart = () => {
             {/* 개별 일자 알림 상세 타임라인 컨텍스트 */}
             {selectedDate && alertsByDate[selectedDate] && (
               <div className="mt-4 border-t pt-6 pb-2">
-                <h3 className="font-bold text-[var(--color-text-primary)] mb-5 flex items-center gap-2">
+                <h3 className="font-bold text-gray-800 mb-5 flex items-center gap-2">
                   <span>📅 {selectedDate} 상세 기록</span>
                 </h3>
 
@@ -353,7 +352,7 @@ const Chart = () => {
                       ></span>
 
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-sm font-bold text-[var(--color-text-primary)] opacity-80">
+                        <span className="text-sm font-bold text-gray-600">
                           {log.time}
                         </span>
                         <span
@@ -365,11 +364,11 @@ const Chart = () => {
                         </span>
                       </div>
 
-                      <div className="bg-[var(--color-bg)] border border-[var(--color-bgs)] rounded p-3 shadow-sm hover:shadow-md transition">
-                        <div className="font-bold text-[var(--color-text-primary)] mb-1">
+                      <div className="bg-gray-50 border rounded p-3 shadow-sm hover:shadow-md transition">
+                        <div className="font-bold text-gray-800 mb-1">
                           {log.alert_message}
                         </div>
-                        <div className="text-sm text-[var(--color-text-primary)] opacity-80 mb-2">
+                        <div className="text-sm text-gray-600 mb-2">
                           측정 온도:{" "}
                           <span className="font-semibold">
                             {log.temperature}°C
@@ -388,7 +387,7 @@ const Chart = () => {
             )}
           </div>
         ) : (
-          /* 핵심 제어 구문: key 데이터 영역에 상속된 currentTheme를 바인딩하여 무조건적인 리렌더링 전사 동기화 확보 */
+          /* 🌟 핵심 제어 구문: key 데이터 영역에 상속된 currentTheme를 바인딩하여 무조건적인 리렌더링 전사 동기화 확보 */
           <Line
             ref={chartRef}
             data={chartConfig}

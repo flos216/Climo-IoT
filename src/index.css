@@ -1,16 +1,40 @@
 @import "tailwindcss";
 
 :root {
-  --color-text-primary: #3f3f3f;
-  --color-text-about: #787878;
-  --color-bg: #f0fbff;
-  --color-bgs: #c5f0ff;
+  --color-text-primary: #3f3f3f; /*기본 글자*/
+  --color-text-about: #787878; /*헤더 About 글자*/
+  --color-text-point: #5db2f8; /*About 안의 포인트 글자*/
+  --color-bg: #f0fbff; /*카드 배경*/
+  --color-bgs: #c5f0ff; /*모서리 둥근 사각형 배경*/
+  --color-body: #ffff; /*전체 배경*/
+  --color-temp: #ff3434; /*온도 색*/
+  --color-humi: #3c69fd; /*습도 색*/
+  --color-button: #2268ff; /*저장하기 버튼*/
+  --color-calbg: #c6f0ff; /*캘린더 일 박스 배경*/
+}
+
+/* ==================== [추가] 다크 모드 컬러 틀 ==================== */
+:root[class~="dark"] {
+  --color-text-primary: #e3e3e3;
+  --color-text-about: #7e7e7e;
+  --color-text-point: #cfdff8;
+  --color-bg: #898989;
+  --color-bgs: #525252;
+  --color-body: #2c2c2c;
+  --color-temp: #ffabab;
+  --color-humi: #b8d7ff;
+  --color-button: #202020;
+  --color-calbg: #e4e4e4;
 }
 
 @layer base {
   * {
     font-family: "Jockey One", sans-serif;
+  }
+  body {
     color: var(--color-text-primary);
+    background-color: var(--color-body);
+    transition: background-color 0.3s ease;
   }
 }
 
@@ -27,18 +51,4 @@
 
 .animate-fade-in-up {
   animation: fadeInUp 0.5s ease-out forwards;
-}
-
-.dark {
-  --color-body: #1f2937;
-  --color-bg: #374151;
-  --color-bgs: #4b5563;
-
-  --color-text-primary: #f9fafb;
-  --color-text-about: #d1d5db;
-
-  --color-temp: #ff6b6b;
-  --color-humi: #60a5fa;
-
-  --color-button: #2563eb;
 }

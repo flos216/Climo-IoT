@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from "react"; //(Setting) useEffect 추가
+import React, { useState, useEffect } from "react";
 import { requestFcmToken } from "../firebase";
 import logoImg from "../assets/logo.png";
-import settingImg from "../assets/setting.png"; // setting 이미지 임포트
+import settingImg from "../assets/setting.png";
 
 function Header() {
   const [isHovered, setIsHovered] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false); // 모달 활성화 상태 (Setting)
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [pushEnabled, setPushEnabled] = useState(
     localStorage.getItem("pushEnabled") === "true",
   );
 
-  // 다크모드 상태
+  // ==================== 다크모드 전역 상태 제어 메커니즘 ====================
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window !== "undefined") {
       return document.documentElement.classList.contains("dark");
@@ -18,7 +18,7 @@ function Header() {
     return false;
   });
 
-  // html class 동기화
+  // 다크모드 토글 상태 돔(DOM) 동기화 트리거
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add("dark");
@@ -27,7 +27,11 @@ function Header() {
     }
   }, [isDarkMode]);
 
-  // 입력 폼 상태 관리 (초기값 설정) (Setting)
+  // 알림 권한 확인
+  useEffect(() => {
+    setPushEnabled(localStorage.getItem("pushEnabled") === "true");
+  }, []);
+
   const [config, setConfig] = useState({
     temp_warn: 27,
     temp_alert: 30,
@@ -35,12 +39,6 @@ function Header() {
     humi_alert: 70,
   });
 
-  // 알림 권한 확인
-  useEffect(() => {
-    setPushEnabled(localStorage.getItem("pushEnabled") === "true");
-  }, []);
-
-  // 컴포넌트 마운트 시 현재 서버에 저장된 임계치 가져오기 (Setting)
   useEffect(() => {
     if (isModalOpen) {
       fetch("/api/config")
@@ -50,7 +48,6 @@ function Header() {
     }
   }, [isModalOpen]);
 
-  // 입력값 핸들러 (Setting)
   const handleChange = (e) => {
     const { name, value } = e.target;
     setConfig((prev) => ({
@@ -59,11 +56,8 @@ function Header() {
     }));
   };
 
-  // 서버로 설정값 전송 (POST) (Setting)
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // 예외 처리 (유효성 검사)
     if (config.temp_warn >= config.temp_alert) {
       alert("온도 주의 기준값은 경고 기준값보다 작아야 합니다.");
       return;
@@ -82,8 +76,6 @@ function Header() {
 
       if (response.ok) {
         alert("임계치 설정이 성공적으로 저장되었습니다.");
-        // [추가]대시보드에 설정 변경 알림 보내기
-        window.dispatchEvent(new Event("configUpdated"));
         setIsModalOpen(false);
       } else {
         alert("서버 저장 중 오류가 발생했습니다.");
@@ -139,101 +131,114 @@ function Header() {
   };
 
   return (
-    <div className="w-full flex items-center px-[40px] py-[20px] relative z-[100]">
+    /* 💡 전체 배경색 매핑: body 변수 사용 */
+    <div className="flex justify-between items-center px-[40px] py-[20px] relative z-[100] bg-[var(--color-body)] transition-colors duration-300">
       {/* 로고 영역 */}
       <div className="flex items-center gap-1">
         <img
           src={logoImg}
           alt="Climo Logo"
-          className="h-[40px] w-auto object-contain"
+          className={`h-[40px] w-auto object-contain transition-all duration-300 ${
+            isDarkMode ? "brightness-0 invert" : ""
+          }`}
         />
-        <div className="text-[32px] tracking-tight text-[#3f3f3f]">Climo</div>
+        {/* 💡 기본 텍스트 색상 매핑: text-primary 사용 */}
+        <div
+          className="text-[32px] tracking-tight"
+          style={{ color: "var(--color-text-primary)" }}
+        >
+          Climo
+        </div>
       </div>
 
-      {/* 우측 네비게이션 요소 (About 및 세팅 아이콘들) */}
-      <div className="flex items-center gap-3 ml-auto">
+      {/* 우측 네비게이션 요소 (다크모드 토글, About, 세팅 아이콘) */}
+      <div className="flex items-center gap-6">
         {/* About 섹션 */}
         <div
           className="relative"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <div className="text-[32px] text-[var(--color-text-about)] cursor-help opacity-80 hover:opacity-100 transition-opacity">
+          {/* 💡 About 텍스트 전용 색상 매핑: text-about 사용 */}
+          <div
+            className="text-[32px] cursor-help opacity-90 hover:opacity-100 transition-all"
+            style={{ color: "var(--color-text-about)" }}
+          >
             About
           </div>
 
-          {/* 설명 사각형 (200px * 300px) */}
+          {/* About 설명 카드 호버 레이아웃 (💡 카드 배경색: bg 변수 사용, 글자색: primary 변수 사용) */}
           {isHovered && (
             <div
-              className="
-              absolute top-0 right-[110%] 
-              w-[200px] h-[300px] 
-              bg-white border border-gray-100 shadow-2xl rounded-2xl p-6
-              text-gray-800 z-[110]
-              animate-in fade-in slide-in-from-right-5 duration-200
-              flex flex-col
-            "
+              className="absolute top-0 right-[110%] w-[200px] h-[300px] border shadow-2xl rounded-2xl p-6 z-[110] animate-in fade-in slide-in-from-right-5 duration-200 flex flex-col"
+              style={{
+                backgroundColor: "var(--color-bg)",
+                borderColor: "var(--color-bgs)",
+                color: "var(--color-text-primary)",
+              }}
             >
               <div className="flex-grow">
-                <h4 className="text-blue-600 font-bold text-lg mb-2">
+                <h4
+                  className="text-lg mb-2"
+                  style={{ color: "var(--color-text-point)" }}
+                >
                   Service
                 </h4>
-                <p className="text-[13px] leading-relaxed text-gray-600">
+                <p className="text-[13px] leading-relaxed opacity-90">
                   Climo는 라즈베리파이를 통해 실시간으로 환경 정보를 알려드리고
                   있습니다!
                 </p>
               </div>
 
-              <div className="h-[1px] bg-gray-100 my-4"></div>
+              <div
+                className="h-[1px] my-4 opacity-30"
+                style={{ backgroundColor: "var(--color-text-primary)" }}
+              ></div>
 
               <div>
-                <h4 className="text-gray-400 text-[11px] font-bold uppercase mb-3 tracking-wider">
+                <h4 className="text-[11px] font-bold uppercase mb-3 tracking-wider opacity-60">
                   TEAM Members
                 </h4>
                 <ul className="text-[12px] space-y-2">
                   <li className="flex justify-between">
                     <span className="font-semibold">이지원</span>
-                    <span className="text-blue-500 font-medium text-[11px]">
+                    <span
+                      className="font-medium text-[11px]"
+                      style={{ color: "var(--color-text-point)" }}
+                    >
                       Lead & DB
                     </span>
                   </li>
                   <li className="flex justify-between">
                     <span className="font-semibold">김나영</span>
-                    <span className="text-gray-500 text-[11px]">
-                      IoT Sensor
-                    </span>
+                    <span className="opacity-70 text-[11px]">IoT Sensor</span>
                   </li>
                   <li className="flex justify-between">
                     <span className="font-semibold">김민경</span>
-                    <span className="text-gray-500 text-[11px]">Frontend</span>
+                    <span className="opacity-70 text-[11px]">Frontend</span>
                   </li>
                   <li className="flex justify-between">
                     <span className="font-semibold">김홍준</span>
-                    <span className="text-gray-500 text-[11px]">
-                      Flask Server
-                    </span>
+                    <span className="opacity-70 text-[11px]">Flask Server</span>
                   </li>
                 </ul>
               </div>
-              <div className="absolute right-[-6px] top-4 w-3 h-3 bg-white rotate-45 border-t border-r border-gray-100"></div>
+              {/* 말꼬리 사각형 배경 연동 */}
+              <div
+                className="absolute right-[-6px] top-4 w-3 h-3 rotate-45 border-t border-r"
+                style={{
+                  backgroundColor: "var(--color-bg)",
+                  borderColor: "var(--color-bgs)",
+                }}
+              ></div>
             </div>
           )}
         </div>
 
-        <button
-          onClick={handleEnablePush}
-          className={`
-            px-6 py-3 rounded-full font-bold transition-all duration-300
-            ${pushEnabled ? "bg-blue-500 text-white" : "bg-[#dcdcdc] text-[#7a7a7a]"}
-          `}
-        >
-          {pushEnabled ? "✓ 알림 활성화" : "알림 비활성화"}
-        </button>
-
-        {/* 세팅 버튼 아이콘 */}
+        {/* 세팅 버튼 아이콘 (다크모드 시 아이콘 반전) */}
         <button
           onClick={() => setIsModalOpen(true)}
-          className="opacity-75 hover:opacity-100 transition-opacity focus:outline-none"
+          className={`opacity-80 hover:opacity-100 transition-opacity focus:outline-none cursor-pointer ${isDarkMode ? "invert" : ""}`}
         >
           <img
             src={settingImg}
@@ -241,48 +246,74 @@ function Header() {
             className="h-[40px] w-auto object-contain"
           />
         </button>
+
+        {/* 다크모드 토글 버튼 (배경 꾸밈용 변수 bgs와 글자색 primary 연동) */}
+        <button
+          onClick={() => setIsDarkMode(!isDarkMode)}
+          className="flex items-center gap-1 px-3 py-1.5 rounded-2xl transition-all duration-200 text-lg cursor-pointer focus:outline-none shadow-sm"
+          style={{
+            backgroundColor: "var(--color-bgs)",
+            color: "var(--color-text-primary)",
+          }}
+          title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+        >
+          <span>{isDarkMode ? "🌙" : "☀️"}</span>
+          <span className="text-xs font-bold tracking-wider uppercase hidden sm:inline">
+            {isDarkMode ? "Dark" : "Light"}
+          </span>
+        </button>
+
+        <button
+          onClick={handleEnablePush}
+          className="
+            flex items-center gap-1
+            px-3 py-1.5
+            rounded-2xl
+            transition-all duration-200
+            text-lg
+            cursor-pointer
+            focus:outline-none
+            shadow-sm
+          "
+          style={{
+            backgroundColor: pushEnabled
+              ? "var(--color-bgs)"
+              : "var(--color-bgs)",
+
+            color: "var(--color-text-primary)",
+          }}
+          title={pushEnabled ? "Disable Notifications" : "Enable Notifications"}
+        >
+          <span>{pushEnabled ? "🔔" : "🔕"}</span>
+
+          <span className="text-xs font-bold tracking-wider uppercase hidden sm:inline">
+            {pushEnabled ? "NOTI ON" : "NOTI OFF"}
+          </span>
+        </button>
       </div>
 
-      {/* 다크모드 버튼 */}
-      <button
-        onClick={() => setIsDarkMode(!isDarkMode)}
-        className="
-          flex items-center gap-1
-          px-3 py-1.5
-          rounded-2xl
-          transition-all duration-200
-          text-lg
-          shadow-sm
-        "
-        style={{
-          backgroundColor: "var(--color-bgs)",
-          color: "#3f3f3f",
-        }}
-      >
-        <span>{isDarkMode ? "🌙" : "☀️"}</span>
-
-        <span className="text-xs font-bold uppercase hidden sm:inline">
-          {isDarkMode ? "Dark" : "Light"}
-        </span>
-      </button>
-
-      {/* 설정 변경 모달 다이얼로그 오버레이 레이아웃 (Setting) */}
+      {/* 설정 변경 모달 다이얼로그 (💡 모달 본체 배경: bg 변수 사용) */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[200]">
-          <div className="bg-white text-gray-900 rounded-3xl p-8 w-[360px] shadow-2xl animate-in fade-in zoom-in-95 duration-150">
-            <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-              ⚙️ 알람 임계치 제어 설정
-            </h3>
+          <div
+            className="rounded-3xl p-8 w-[360px] shadow-2xl animate-in fade-in zoom-in-95 duration-150 border"
+            style={{
+              backgroundColor: "var(--color-body)",
+              borderColor: "var(--color-body)",
+              color: "var(--color-text-primary)",
+            }}
+          >
+            <h3 className="text-xl mb-6 flex items-center gap-2">⚙️Setting</h3>
 
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* 온도 파트 */}
               <div className="space-y-2">
-                <label className="text-xs font-bold text-blue-600 block">
-                  🌡️ 온도 기준값 설정 (°C)
+                <label className="text-base text-[var(--color-temp)] block">
+                  🌡️temperature (°C)
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <span className="text-[11px] text-gray-500 block mb-1">
+                    <span className="text-[13px] opacity-60 block mb-1">
                       주의 수치
                     </span>
                     <input
@@ -290,11 +321,15 @@ function Header() {
                       name="temp_warn"
                       value={config.temp_warn}
                       onChange={handleChange}
-                      className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-xl px-3 py-2 text-sm text-center focus:outline-none focus:border-blue-500"
+                      className="w-full border rounded-xl px-3 py-2 text-sm text-center focus:outline-none focus:border-blue-500"
+                      style={{
+                        backgroundColor: "var(--color-bg)",
+                        borderColor: "var(--color-bgs)",
+                      }}
                     />
                   </div>
                   <div>
-                    <span className="text-[11px] text-gray-500 block mb-1">
+                    <span className="text-[13px] opacity-60 block mb-1">
                       경고 수치
                     </span>
                     <input
@@ -302,7 +337,11 @@ function Header() {
                       name="temp_alert"
                       value={config.temp_alert}
                       onChange={handleChange}
-                      className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-xl px-3 py-2 text-sm text-center focus:outline-none focus:border-blue-500"
+                      className="w-full border rounded-xl px-3 py-2 text-sm text-center focus:outline-none focus:border-blue-500 "
+                      style={{
+                        backgroundColor: "var(--color-bg)",
+                        borderColor: "var(--color-bgs)",
+                      }}
                     />
                   </div>
                 </div>
@@ -310,12 +349,12 @@ function Header() {
 
               {/* 습도 파트 */}
               <div className="space-y-2">
-                <label className="text-xs font-bold text-emerald-600 block">
-                  💧 습도 기준값 설정 (%)
+                <label className="text-base text-[var(--color-humi)] block">
+                  💧humidity (%)
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <span className="text-[11px] text-gray-500 block mb-1">
+                    <span className="text-[13px] opacity-60 block mb-1">
                       주의 수치
                     </span>
                     <input
@@ -323,11 +362,15 @@ function Header() {
                       name="humi_warn"
                       value={config.humi_warn}
                       onChange={handleChange}
-                      className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-xl px-3 py-2 text-sm text-center focus:outline-none focus:border-blue-500"
+                      className="w-full border rounded-xl px-3 py-2 text-sm text-center focus:outline-none focus:border-emerald-500 "
+                      style={{
+                        backgroundColor: "var(--color-bg)",
+                        borderColor: "var(--color-bgs)",
+                      }}
                     />
                   </div>
                   <div>
-                    <span className="text-[11px] text-gray-500 block mb-1">
+                    <span className="text-[13px] opacity-60 block mb-1">
                       경고 수치
                     </span>
                     <input
@@ -335,24 +378,33 @@ function Header() {
                       name="humi_alert"
                       value={config.humi_alert}
                       onChange={handleChange}
-                      className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-xl px-3 py-2 text-sm text-center focus:outline-none focus:border-blue-500"
+                      className="w-full border rounded-xl px-3 py-2 text-sm text-center focus:outline-none focus:border-emerald-500 "
+                      style={{
+                        backgroundColor: "var(--color-bg)",
+                        borderColor: "var(--color-bgs)",
+                      }}
                     />
                   </div>
                 </div>
               </div>
 
-              {/* 하단 제어 제어 인터페이스 버튼 */}
+              {/* 하단 제어 인터페이스 버튼 */}
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2.5 rounded-xl text-sm transition-colors"
+                  className="flex-1 opacity-80 hover:opacity-100 font-medium py-2.5 rounded-xl text-sm transition-all border"
+                  style={{
+                    backgroundColor: "var(--color-bgs)",
+                    borderColor: "var(--color-bgs)",
+                    color: "var(--color-text-primary)",
+                  }}
                 >
                   취소
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-xl text-sm transition-colors shadow-lg shadow-blue-500/20"
+                  className="flex-1 text-white font-medium py-2.5 rounded-xl text-sm transition-all duration-200 shadow-lg bg-[var(--color-button)] hover:brightness-110 shadow-[var(--color-humi)]/20"
                 >
                   저장하기
                 </button>
