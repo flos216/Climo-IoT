@@ -1,0 +1,6 @@
+{
+  "humi_warn": 60,
+  "humi_alert": 70,
+  "temp_warn": 27,
+  "temp_alert": 30
+}
