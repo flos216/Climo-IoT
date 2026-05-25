@@ -10,6 +10,23 @@ function Header() {
     localStorage.getItem("pushEnabled") === "true",
   );
 
+  // 다크모드 상태
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window !== "undefined") {
+      return document.documentElement.classList.contains("dark");
+    }
+    return false;
+  });
+
+  // html class 동기화
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [isDarkMode]);
+
   // 입력 폼 상태 관리 (초기값 설정) (Setting)
   const [config, setConfig] = useState({
     temp_warn: 27,
@@ -122,7 +139,7 @@ function Header() {
   };
 
   return (
-    <div className="flex justify-between items-center px-[40px] py-[20px] relative z-[100]">
+    <div className="w-full flex items-center px-[40px] py-[20px] relative z-[100]">
       {/* 로고 영역 */}
       <div className="flex items-center gap-1">
         <img
@@ -130,11 +147,11 @@ function Header() {
           alt="Climo Logo"
           className="h-[40px] w-auto object-contain"
         />
-        <div className="text-[32px] tracking-tight">Climo</div>
+        <div className="text-[32px] tracking-tight text-[#3f3f3f]">Climo</div>
       </div>
 
-      {/* 우측 네비게이션 요소 (About 및 세팅 아이콘) */}
-      <div className="flex items-center gap-3">
+      {/* 우측 네비게이션 요소 (About 및 세팅 아이콘들) */}
+      <div className="flex items-center gap-3 ml-auto">
         {/* About 섹션 */}
         <div
           className="relative"
@@ -226,10 +243,33 @@ function Header() {
         </button>
       </div>
 
+      {/* 다크모드 버튼 */}
+      <button
+        onClick={() => setIsDarkMode(!isDarkMode)}
+        className="
+          flex items-center gap-1
+          px-3 py-1.5
+          rounded-2xl
+          transition-all duration-200
+          text-lg
+          shadow-sm
+        "
+        style={{
+          backgroundColor: "var(--color-bgs)",
+          color: "#3f3f3f",
+        }}
+      >
+        <span>{isDarkMode ? "🌙" : "☀️"}</span>
+
+        <span className="text-xs font-bold uppercase hidden sm:inline">
+          {isDarkMode ? "Dark" : "Light"}
+        </span>
+      </button>
+
       {/* 설정 변경 모달 다이얼로그 오버레이 레이아웃 (Setting) */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[200]">
-          <div className="bg-white rounded-3xl p-8 w-[360px] shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white text-gray-900 rounded-3xl p-8 w-[360px] shadow-2xl animate-in fade-in zoom-in-95 duration-150">
             <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
               ⚙️ 알람 임계치 제어 설정
             </h3>
@@ -242,7 +282,7 @@ function Header() {
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <span className="text-[11px] text-gray-400 block mb-1">
+                    <span className="text-[11px] text-gray-500 block mb-1">
                       주의 수치
                     </span>
                     <input
@@ -250,11 +290,11 @@ function Header() {
                       name="temp_warn"
                       value={config.temp_warn}
                       onChange={handleChange}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-center focus:outline-none focus:border-blue-500"
+                      className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-xl px-3 py-2 text-sm text-center focus:outline-none focus:border-blue-500"
                     />
                   </div>
                   <div>
-                    <span className="text-[11px] text-gray-400 block mb-1">
+                    <span className="text-[11px] text-gray-500 block mb-1">
                       경고 수치
                     </span>
                     <input
@@ -262,7 +302,7 @@ function Header() {
                       name="temp_alert"
                       value={config.temp_alert}
                       onChange={handleChange}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-center focus:outline-none focus:border-blue-500"
+                      className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-xl px-3 py-2 text-sm text-center focus:outline-none focus:border-blue-500"
                     />
                   </div>
                 </div>
@@ -275,7 +315,7 @@ function Header() {
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <span className="text-[11px] text-gray-400 block mb-1">
+                    <span className="text-[11px] text-gray-500 block mb-1">
                       주의 수치
                     </span>
                     <input
@@ -283,11 +323,11 @@ function Header() {
                       name="humi_warn"
                       value={config.humi_warn}
                       onChange={handleChange}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-center focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-xl px-3 py-2 text-sm text-center focus:outline-none focus:border-blue-500"
                     />
                   </div>
                   <div>
-                    <span className="text-[11px] text-gray-400 block mb-1">
+                    <span className="text-[11px] text-gray-500 block mb-1">
                       경고 수치
                     </span>
                     <input
@@ -295,7 +335,7 @@ function Header() {
                       name="humi_alert"
                       value={config.humi_alert}
                       onChange={handleChange}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-center focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-gray-50 text-gray-900 border border-gray-200 rounded-xl px-3 py-2 text-sm text-center focus:outline-none focus:border-blue-500"
                     />
                   </div>
                 </div>

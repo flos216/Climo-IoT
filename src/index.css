@@ -1,17 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --color-text-primary: #3F3F3F;
-  --color-text-about : #787878;
-  --color-bg: #F0FBFF;
-  --color-bgs: #C5F0FF;
+  --color-text-primary: #3f3f3f;
+  --color-text-about: #787878;
+  --color-bg: #f0fbff;
+  --color-bgs: #c5f0ff;
 }
-
 
 @layer base {
   * {
     font-family: "Jockey One", sans-serif;
-    color : var(--color-text-primary) ;
+    color: var(--color-text-primary);
   }
 }
 
@@ -28,4 +27,18 @@
 
 .animate-fade-in-up {
   animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.dark {
+  --color-body: #1f2937;
+  --color-bg: #374151;
+  --color-bgs: #4b5563;
+
+  --color-text-primary: #f9fafb;
+  --color-text-about: #d1d5db;
+
+  --color-temp: #ff6b6b;
+  --color-humi: #60a5fa;
+
+  --color-button: #2563eb;
 }

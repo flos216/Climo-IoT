@@ -2,16 +2,16 @@ function Card({ title, value, unit, status, onClick }) {
   const isStatusCard = title === "Status";
 
   let cardBg = "bg-[color:var(--color-bg)]";
-  let valueColor = "text-[#3f3f3f]";
+  let valueColor = "text-primary";
 
   if (isStatusCard && status === "주의") {
-    cardBg = "bg-orange-500";
-    valueColor = "text-white";
+    cardBg = "bg-[#fff2c9]";
+    valueColor = "text-[#3f3f3f]";
   }
 
   if (isStatusCard && status === "경고") {
-    cardBg = "bg-red-600";
-    valueColor = "text-white";
+    cardBg = "bg-[#ffc9c9]";
+    valueColor = "text-[#3f3f3f]";
   }
 
   const handleClick = () => {
@@ -41,12 +41,11 @@ function Card({ title, value, unit, status, onClick }) {
         ${isStatusCard ? "cursor-pointer hover:scale-105" : ""}
       `}
     >
-      <p className="absolute top-[27px] left-[39px] text-[#2f2f2f]">{title}</p>
+      <p className="absolute top-[27px] left-[39px]">{title}</p>
 
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <p
           className={`
-            font-bold
             ${valueColor}
             ${isStatusCard ? "text-5xl" : "text-6xl"}
           `}
