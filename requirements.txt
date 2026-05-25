@@ -1,0 +1,9 @@
+Flask
+Flask-Cors
+Flask-SQLAlchemy
+pymysql
+python-dotenv
+firebase-admin
+Adafruit-Blinka
+adafruit-circuitpython-dht
+gunicorn
