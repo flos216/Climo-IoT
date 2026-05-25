@@ -22,3 +22,23 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Firebase
+firebase-service-account.json
+fcm_tokens.json
+
+# Env
+.env
+.env.local
+
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# React
+node_modules/
+dist/
+
+# Config
+config.json

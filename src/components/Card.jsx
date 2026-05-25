@@ -1,34 +1,62 @@
-function Card({ title, value, unit }) {
+function Card({ title, value, unit, status, onClick }) {
+  const isStatusCard = title === "Status";
+
+  let cardBg = "bg-[color:var(--color-bg)]";
+  let valueColor = "text-[#3f3f3f]";
+
+  if (isStatusCard && status === "주의") {
+    cardBg = "bg-orange-500";
+    valueColor = "text-white";
+  }
+
+  if (isStatusCard && status === "경고") {
+    cardBg = "bg-red-600";
+    valueColor = "text-white";
+  }
+
+  const handleClick = () => {
+    console.log("Card 클릭됨:", title);
+
+    if (onClick) {
+      onClick();
+    }
+  };
+
   return (
-    <div className="
-      flex flex-col
-      w-full 
-      max-w-[265px]
-      mx-auto 
-      h-[180px]
-      bg-[color:var(--color-bg)]
-      rounded-2xl shadow-xl
-      p-6
-      relative
-    ">
+    <div
+      onClick={handleClick}
+      className={`
+        flex flex-col
+        w-full
+        max-w-[265px]
+        mx-auto
+        h-[180px]
+        ${cardBg}
+        rounded-2xl
+        shadow-xl
+        p-6
+        relative
+        transition-all
+        duration-300
+        ${isStatusCard ? "cursor-pointer hover:scale-105" : ""}
+      `}
+    >
+      <p className="absolute top-[27px] left-[39px] text-[#2f2f2f]">{title}</p>
 
-      {/* 제목 */}
-      <p className="absolute top-[27px] left-[39px]">
-        {title}
-      </p>
-
-      {/* 값 */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <p className="text-6xl">
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <p
+          className={`
+            font-bold
+            ${valueColor}
+            ${isStatusCard ? "text-5xl" : "text-6xl"}
+          `}
+        >
           {value}
-          <span className="text-xl ml-1">
-            {unit}
-          </span>
+          {unit && <span className="text-xl ml-1">{unit}</span>}
         </p>
       </div>
-
     </div>
-  )
+  );
 }
 
-export default Card
+export default Card;

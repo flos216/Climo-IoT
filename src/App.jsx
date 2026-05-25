@@ -1,32 +1,19 @@
-import { useState } from 'react'
-import Start from './pages/Start'
-import Dashboard from './pages/Dashboard'
-import Header from './components/Header'
-import Footer from './components/Footer'
-import {ToastProvider} from './components/ToastProvider';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Start from "./pages/Start";
+import Dashboard from "./pages/Dashboard";
+import { ToastProvider } from "./components/ToastProvider";
 
 function App() {
-  const [started, setStarted] = useState(false)
-
   return (
-    <div className="min-h-screen flex flex-col">
-
-      {started ? (
-        <>
-        <ToastProvider>
-          <Header />
-          <main className="flex-grow flex flex-col">
-            <Dashboard />
-          </main>
-          <Footer />
-        </ToastProvider>
-        </>
-      ) : (
-        <Start onStart={() => setStarted(true)} />
-      )}
-
-    </div>
-  )
+    <ToastProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Start />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Routes>
+      </BrowserRouter>
+    </ToastProvider>
+  );
 }
 
-export default App
+export default App;
