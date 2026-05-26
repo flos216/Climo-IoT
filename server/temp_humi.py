@@ -106,6 +106,19 @@ def send_push_notification(title, body):
         except Exception as e:
             print("FCM 전송 실패:", e)
 
+            if "NotRegistered" in str(e):
+                print("만료된 토큰 삭제:", token)
+                tokens.pop(token, None)
+                save_fcm_tokens(tokens)
+
+            invalid_tokens = []
+            for token in invalid_tokens:
+                tokens.pop(token, None)
+
+            if invalid_tokens:
+                save_fcm_tokens(tokens)
+                print("만료 토큰 정리 완료:", len(invalid_tokens))
+                
 # ==================== 센서 데이터 테이블 ====================
 class SensorData(db.Model):
     __tablename__ = 'sensor_data'
@@ -327,7 +340,7 @@ def evaluate_status(temp, humi):
 
     # 2. SQL 계산 결과 기반 판단
     avg_10min_humi = get_recent_avg_humidity(10)
-    if avg_10min_humi is not None and avg_10min_humi > humi_alert_val: # 기존 70 고정값 수정
+    if avg_10min_humi is not None and avg_10min_humi > humi_alert_val:
         status = "경고"
         alert_level = "위험"
         alert_message = f"최근 10분 평균 습도가 {avg_10min_humi}%로 높습니다."

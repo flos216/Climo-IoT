@@ -45,8 +45,9 @@ function Card({ title, value, unit, status, onClick }) {
 
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <p
-          className={`
+          className={` 
             ${valueColor}
+            font-bold
             ${isStatusCard ? "text-5xl" : "text-6xl"}
           `}
         >
