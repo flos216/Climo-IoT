@@ -486,45 +486,11 @@ def get_data():
             "error": "데이터 조회 실패"
         })
 
-# ==================== SQL 분석 결과 확인 ====================
-@app.route('/analysis')
-def get_analysis():
-    try:
-        avg_10min_humi = get_recent_avg_humidity(10)
-        temp_diff, humi_diff = get_recent_temp_humi_diff(5)
-
-        avg_status = "정상"
-        diff_status = "정상"
-
-        if avg_10min_humi is not None and avg_10min_humi > 70:
-            avg_status = "경고"
-
-        if temp_diff >= 15 or humi_diff >= 15:
-            diff_status = "경고"
-
-        data = {
-            "avg_10min_humidity": avg_10min_humi,
-            "avg_threshold": "70 초과 시 경고",
-            "avg_status": avg_status,
-            "temp_diff_5min": temp_diff,
-            "humidity_diff_5min": humi_diff,
-            "diff_threshold": "온도 또는 습도 변화량 15 이상 시 경고",
-            "diff_status": diff_status
-        }
-
-        return pretty_json(data)
-
-    except Exception as e:
-        print("분석 조회 오류:", e)
-        return pretty_json({
-            "error": "분석 데이터 조회 실패"
-        })
-
 # ==================== 경고 이력 조회 ====================
 @app.route('/alerts')
 def get_alerts():
     try:
-        alerts = AlertLog.query.order_by(AlertLog.detected_at.desc()).limit(10).all()
+        alerts = AlertLog.query.order_by(AlertLog.detected_at.desc()).all()
 
         result = []
         for a in alerts:

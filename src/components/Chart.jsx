@@ -62,10 +62,22 @@ const Chart = () => {
     humi: [],
   });
 
+  const [calendarDate, setCalendarDate] = useState(new Date());
+
+  const year = calendarDate.getFullYear();
+  const month = calendarDate.getMonth();
+
+  const goPrevMonth = () => {
+    setSelectedDate(null);
+    setCalendarDate(new Date(year, month - 1, 1));
+  };
+
+  const goNextMonth = () => {
+    setSelectedDate(null);
+    setCalendarDate(new Date(year, month + 1, 1));
+  };
+
   // 캘린더 날짜 계산 변수
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
@@ -290,8 +302,14 @@ const Chart = () => {
         {viewType === "alerts" ? (
           <div className="flex flex-col h-full bg-body rounded p-4 gap-4">
             {/* 달력 캘린더 헤더 */}
-            <div className="text-center font-bold text-lg  pb-2 border-b">
-              {year} / {String(month + 1).padStart(2, "0")}
+            <div className="flex items-center justify-center gap-6 font-bold text-lg pb-2 border-b">
+              <button onClick={goPrevMonth}>◀</button>
+
+              <span>
+                {year} / {String(month + 1).padStart(2, "0")}
+              </span>
+
+              <button onClick={goNextMonth}>▶</button>
             </div>
 
             {/* 달력 7열 그리드 레이아웃 */}
