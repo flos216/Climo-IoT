@@ -315,7 +315,7 @@ def evaluate_status(temp, humi):
     humi_warn_val = config.get('humi_warn', 60)
     humi_alert_val = config.get('humi_alert', 70)
 
-    # 1. 현재값 기준 판단 (고정 숫자를 동적 변수로 매핑 교체)
+    # 1. 현재값 기준 판단
     if humi >= humi_alert_val:
         status = "경고"
         alert_level = "위험"
@@ -382,11 +382,13 @@ def read_sensor():
 
 # ==================== 최신 temp/humidity 조회 ====================
 def get_latest_values():
-    latest_temp = SensorData.query.filter_by(sensor_type='temp') \
-        .order_by(SensorData.timestamp.desc()).first()
+    latest_temp = SensorData.query.filter_by(
+        sensor_type='temp'
+    ).order_by(SensorData.timestamp.desc()).first()
 
-    latest_humi = SensorData.query.filter_by(sensor_type='humidity') \
-        .order_by(SensorData.timestamp.desc()).first()
+    latest_humi = SensorData.query.filter_by(
+        sensor_type='humidity'
+    ).order_by(SensorData.timestamp.desc()).first()
 
     if not latest_temp or not latest_humi:
         return None

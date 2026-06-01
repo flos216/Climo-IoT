@@ -13,10 +13,22 @@ function Header() {
   // ==================== 다크모드 전역 상태 제어 메커니즘 ====================
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window !== "undefined") {
+      const savedTheme = localStorage.getItem("theme");
+
+      if (savedTheme === "dark") {
+        return true;
+      }
+
+      if (savedTheme === "light") {
+        return false;
+      }
+
       return document.documentElement.classList.contains("dark");
     }
+
     return false;
   });
+  const [tempDarkMode, setTempDarkMode] = useState(false);
 
   // 다크모드 토글 상태 돔(DOM) 동기화 트리거
   useEffect(() => {
@@ -26,6 +38,24 @@ function Header() {
       document.documentElement.classList.remove("dark");
     }
   }, [isDarkMode]);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+
+    if (savedTheme === "dark") {
+      document.documentElement.classList.add("dark");
+      setIsDarkMode(true);
+    } else if (savedTheme === "light") {
+      document.documentElement.classList.remove("dark");
+      setIsDarkMode(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isModalOpen) {
+      setTempDarkMode(isDarkMode);
+    }
+  }, [isModalOpen, isDarkMode]);
 
   // 알림 권한 확인
   useEffect(() => {
@@ -75,7 +105,17 @@ function Header() {
       });
 
       if (response.ok) {
-        alert("임계치 설정이 성공적으로 저장되었습니다.");
+        if (tempDarkMode) {
+          document.documentElement.classList.add("dark");
+          setIsDarkMode(true);
+          localStorage.setItem("theme", "dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+          setIsDarkMode(false);
+          localStorage.setItem("theme", "light");
+        }
+
+        alert("설정이 성공적으로 저장되었습니다.");
         setIsModalOpen(false);
       } else {
         alert("서버 저장 중 오류가 발생했습니다.");
@@ -247,22 +287,6 @@ function Header() {
           />
         </button>
 
-        {/* 다크모드 토글 버튼 (배경 꾸밈용 변수 bgs와 글자색 primary 연동) */}
-        <button
-          onClick={() => setIsDarkMode(!isDarkMode)}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-2xl transition-all duration-200 text-lg cursor-pointer focus:outline-none shadow-sm"
-          style={{
-            backgroundColor: "var(--color-bgs)",
-            color: "var(--color-text-primary)",
-          }}
-          title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-        >
-          <span>{isDarkMode ? "🌙" : "☀️"}</span>
-          <span className="text-xs font-bold tracking-wider uppercase hidden sm:inline">
-            {isDarkMode ? "Dark" : "Light"}
-          </span>
-        </button>
-
         <button
           onClick={handleEnablePush}
           className="
@@ -387,6 +411,54 @@ function Header() {
                   </div>
                 </div>
               </div>
+              {/* Theme 토글 */}
+              <div className="space-y-2 pt-2">
+                <label className="text-base block">🌗 Theme</label>
+
+                <div
+                  className="flex items-center justify-between px-4 py-3 rounded-xl"
+                  style={{
+                    backgroundColor: "var(--color-bg)",
+                    border: "1px solid var(--color-bgs)",
+                  }}
+                >
+                  <span
+                    className={`font-medium ${
+                      !tempDarkMode ? "opacity-100" : "opacity-50"
+                    }`}
+                  >
+                    ☀️ Light
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => setTempDarkMode(!tempDarkMode)}
+                    className={`
+                        relative w-[60px] h-[32px]
+                        rounded-full transition-all duration-300
+                        ${tempDarkMode ? "bg-gray-600" : "bg-sky-300"}
+                    `}
+                  >
+                    <div
+                      className={`
+                          absolute top-[3px]
+                          w-[26px] h-[26px]
+                          bg-white rounded-full shadow-md
+                          transition-all duration-300
+                          ${tempDarkMode ? "left-[31px]" : "left-[3px]"}
+                  `}
+                    />
+                  </button>
+
+                  <span
+                    className={`font-medium ${
+                      tempDarkMode ? "opacity-100" : "opacity-50"
+                    }`}
+                  >
+                    🌙 Dark
+                  </span>
+                </div>
+              </div>
 
               {/* 하단 제어 인터페이스 버튼 */}
               <div className="flex gap-3 pt-4">
@@ -402,6 +474,7 @@ function Header() {
                 >
                   취소
                 </button>
+
                 <button
                   type="submit"
                   className="flex-1 text-white font-medium py-2.5 rounded-xl text-sm transition-all duration-200 shadow-lg bg-[var(--color-button)] hover:brightness-110 shadow-[var(--color-humi)]/20"
