@@ -43,7 +43,7 @@ const Chart = () => {
   const showToast = useToast();
   const [viewType, setViewType] = useState("realtime");
 
-  // 🌟 [추가] 런타임 글로벌 테마 감지를 위한 상태 및 참조 포인터 수립
+  // 런타임 글로벌 테마 감지를 위한 상태 및 참조 포인터 수립
   const [currentTheme, setCurrentTheme] = useState("light");
   const chartRef = useRef(null);
 
@@ -81,7 +81,7 @@ const Chart = () => {
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  // 🌟 [추가] <html> 태그의 다크모드 클래스 변화를 실시간으로 감지하는 옵저버 파이프라인
+  // <html> 태그의 다크모드 클래스 변화를 실시간으로 감지하는 옵저버 파이프라인
   useEffect(() => {
     const isDark = document.documentElement.classList.contains("dark");
     setCurrentTheme(isDark ? "dark" : "light");
@@ -164,7 +164,7 @@ const Chart = () => {
     return viewType === "realtime" ? realtimeData : historyData;
   }, [viewType, realtimeData, historyData]);
 
-  // 🌟 [동적 연동] 테마 변경 상태(currentTheme)에 반응하여 실시간으로 정밀 색상값 파싱
+  // [동적 연동] 테마 변경 상태(currentTheme)에 반응하여 실시간으로 정밀 색상값 파싱
   const tempColor =
     typeof window !== "undefined"
       ? window

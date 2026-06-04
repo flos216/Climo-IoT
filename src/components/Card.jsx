@@ -1,4 +1,4 @@
-function Card({ title, value, unit, status, onClick }) {
+function Card({ title, value, unit, status, onClick, trend }) {
   const isStatusCard = title === "Status";
 
   let cardBg = "bg-[color:var(--color-bg)]";
@@ -53,6 +53,18 @@ function Card({ title, value, unit, status, onClick }) {
         >
           {value}
           {unit && <span className="text-xl ml-1">{unit}</span>}
+
+          {/* index.css 변수를 적용하여 테마에 맞게 색상이 변하는 세모 기호 */}
+          {trend === "up" && (
+            <span className="text-2xl ml-2 text-[color:var(--color-temp)]">
+              ▲
+            </span>
+          )}
+          {trend === "down" && (
+            <span className="text-2xl ml-2 text-[color:var(--color-humi)]">
+              ▼
+            </span>
+          )}
         </p>
       </div>
     </div>
