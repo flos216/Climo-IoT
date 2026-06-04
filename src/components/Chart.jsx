@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useToast } from "../components/ToastProvider";
 import { Line } from "react-chartjs-2";
 import {
@@ -45,7 +45,6 @@ const Chart = () => {
 
   // 런타임 글로벌 테마 감지를 위한 상태 및 참조 포인터 수립
   const [currentTheme, setCurrentTheme] = useState("light");
-  const chartRef = useRef(null);
 
   // 경고 이력 및 달력 상태
   const [alertLogs, setAlertLogs] = useState([]);
@@ -405,13 +404,8 @@ const Chart = () => {
             )}
           </div>
         ) : (
-          /* 🌟 핵심 제어 구문: key 데이터 영역에 상속된 currentTheme를 바인딩하여 무조건적인 리렌더링 전사 동기화 확보 */
-          <Line
-            ref={chartRef}
-            data={chartConfig}
-            options={options}
-            key={currentTheme}
-          />
+          /* 핵심 제어 구문: key 데이터 영역에 상속된 currentTheme를 바인딩하여 무조건적인 리렌더링 전사 동기화 확보 */
+          <Line data={chartConfig} options={options} key={currentTheme} />
         )}
       </div>
     </div>

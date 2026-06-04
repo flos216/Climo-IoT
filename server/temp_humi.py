@@ -475,12 +475,6 @@ def handle_config():
 @app.route('/')
 def serve_react():
     return send_from_directory(app.template_folder, 'index.html')
-    """
-    <h1>센서 모니터링 서버</h1>
-    <p><a href="/data">/data</a> : 최신 센서 데이터 및 상태 판단 결과</p>
-    <p><a href="/analysis">/analysis</a> : SQL 기반 평균 및 변화량 분석 결과</p>
-    <p><a href="/alerts">/alerts</a> : 최근 경고 이력 조회</p>
-    """
 
 # ==================== 최신 데이터 + 상태 판단 ====================
 @app.route('/data')
@@ -677,7 +671,6 @@ if __name__ == '__main__':
     print("서버 시작")
     print(" - 홈: http://0.0.0.0:5000/")
     print(" - 데이터: http://0.0.0.0:5000/data")
-    print(" - 분석: http://0.0.0.0:5000/analysis")
     print(" - 경고: http://0.0.0.0:5000/alerts")
     print(" - 센서 데이터는 60초마다 자동 저장됩니다.")
 

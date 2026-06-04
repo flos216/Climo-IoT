@@ -2,12 +2,16 @@ import { useEffect, useState, useRef } from "react";
 import { useToast } from "../components/ToastProvider";
 import Card from "../components/Card";
 import Chart from "../components/Chart";
-import Header from "../components/Header"; // Header 추가
-import Footer from "../components/Footer"; // Footer 추가
+import Header from "../components/Header";
+import Footer from "../components/Footer";
 
 function Dashboard() {
   //모바일 가로 모드 안내 창 노출 여부를 제어하는 로컬 상태
   const [showNotice, setShowNotice] = useState(false);
+
+  // 🌟 [수정] 통신 장애 상태를 원인별로 명확히 분리
+  const [isOffline, setIsOffline] = useState(!navigator.onLine); // 1순위: 인터넷 자체 단절 여부
+  const [isServerDown, setIsServerDown] = useState(false); // 2순위: 백엔드 서버 다운 여부
 
   const [sensorData, setSensorData] = useState({
     temperature: "-",
@@ -16,6 +20,8 @@ function Dashboard() {
     temp_diff_5min: "-",
     humidity_diff_5min: "-",
     status: "-",
+    tempTrend: null,
+    humiTrend: null,
   });
 
   const [config, setConfig] = useState({
@@ -27,6 +33,10 @@ function Dashboard() {
 
   const showToast = useToast();
   const prevStatusRef = useRef("정상");
+  const prevDataRef = useRef({
+    temperature: null,
+    humidity: null,
+  });
 
   const showStatusAlert = () => {
     showToast(
@@ -37,6 +47,12 @@ function Dashboard() {
   };
 
   const fetchSensorData = async () => {
+    // 💡 [1순위 체크] 인터넷 연결이 끊겨있다면 서버 요청을 아예 보내지 않고 차단
+    if (!navigator.onLine) {
+      setIsOffline(true);
+      return;
+    }
+
     try {
       const response = await fetch("/data");
 
@@ -50,6 +66,35 @@ function Dashboard() {
       const newStatus = (data.status ?? "").trim();
       const newAlertLevel = (data.alert_level ?? "").trim();
 
+      const prevTemp = prevDataRef.current.temperature;
+      const prevHumi = prevDataRef.current.humidity;
+
+      const currentTemp = Number(data.temperature);
+      const currentHumi = Number(data.humidity);
+
+      const tempTrend =
+        prevTemp === null || Number.isNaN(currentTemp)
+          ? null
+          : currentTemp > prevTemp
+            ? "up"
+            : currentTemp < prevTemp
+              ? "down"
+              : null;
+
+      const humiTrend =
+        prevHumi === null || Number.isNaN(currentHumi)
+          ? null
+          : currentHumi > prevHumi
+            ? "up"
+            : currentHumi < prevHumi
+              ? "down"
+              : null;
+
+      prevDataRef.current = {
+        temperature: currentTemp,
+        humidity: currentHumi,
+      };
+
       setSensorData({
         temperature: data.temperature ?? "-",
         humidity: data.humidity ?? "-",
@@ -59,6 +104,8 @@ function Dashboard() {
         status: newStatus || "-",
         alert_message: data.alert_message ?? "",
         action_guide: data.action_guide ?? "",
+        tempTrend,
+        humiTrend,
       });
 
       if (
@@ -70,16 +117,36 @@ function Dashboard() {
       ) {
         showToast(
           `현재 환경 상태: ${newStatus || newAlertLevel}
-          ${data.alert_message || "상태 확인이 필요합니다."}
-          ${data.action_guide || ""}`,
+    ${data.alert_message || "상태 확인이 필요합니다."}
+    ${data.action_guide || ""}`,
         );
       }
 
       prevStatusRef.current = newStatus;
+
+      // 모든 통신이 정상이면 서버 에러 상태를 해제
+      setIsServerDown(false);
+      setIsOffline(false);
     } catch (error) {
       console.error("센서 데이터 불러오기 실패:", error);
+      // 인터넷은 유효하나 fetch에 실패한 것이므로 서버 불안정으로 판정
+      setIsServerDown(true);
     }
   };
+
+  // 모바일 진입 및 세로 모드 실시간 센싱
+  useEffect(() => {
+    const orientationQuery = window.matchMedia(
+      "(pointer: coarse) and (orientation: portrait)",
+    );
+    const handleOrientationChange = (e) => {
+      setShowNotice(e.matches);
+    };
+    if (orientationQuery.matches) setShowNotice(true);
+    orientationQuery.addEventListener("change", handleOrientationChange);
+    return () =>
+      orientationQuery.removeEventListener("change", handleOrientationChange);
+  }, []);
 
   const fetchConfig = async () => {
     try {
@@ -92,19 +159,12 @@ function Dashboard() {
         temp_alert: data.temp_alert ?? "-",
         humi_warn: data.humi_warn ?? "-",
         humi_alert: data.humi_alert ?? "-",
+        tempTrend,
+        humiTrend,
       });
     } catch (error) {
       console.error("임계치 설정 불러오기 실패:", error);
     }
-  };
-
-  // 5분 전 데이터와 비교하여 trend(상승/하강) 값을 결정하는 함수
-  const getTrend = (diff) => {
-    const numDiff = parseFloat(diff);
-    if (isNaN(numDiff)) return null;
-    if (numDiff > 0) return "up";
-    if (numDiff < 0) return "down";
-    return null;
   };
 
   // 모바일 진입 및 세로 모드 실시간 센싱을 위한 useEffect
@@ -143,18 +203,33 @@ function Dashboard() {
     const interval = setInterval(() => {
       fetchSensorData();
       fetchConfig();
-    }, 10000);
+    }, 3000);
 
     const handleConfigUpdated = () => {
       fetchSensorData();
       fetchConfig();
     };
 
+    const handleOffline = () => {
+      setIsOffline(true);
+      setIsServerDown(false);
+    };
+
+    const handleOnline = () => {
+      setIsOffline(false);
+      fetchSensorData();
+      fetchConfig();
+    };
+
     window.addEventListener("configUpdated", handleConfigUpdated);
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
 
     return () => {
       clearInterval(interval);
       window.removeEventListener("configUpdated", handleConfigUpdated);
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", handleOnline);
     };
   }, []);
 
@@ -163,13 +238,15 @@ function Dashboard() {
       title: "Now Temp",
       value: sensorData.temperature,
       unit: "°C",
-      trend: getTrend(sensorData.temp_diff_5min), // 실시간 diff 값 연동
+      trend: sensorData.tempTrend,
+      trendValue: sensorData.temp_diff_5min,
     },
     {
       title: "Now Humi",
       value: sensorData.humidity,
       unit: "%",
-      trend: getTrend(sensorData.humidity_diff_5min), // 실시간 diff 값 연동
+      trend: sensorData.humiTrend,
+      trendValue: sensorData.humidity_diff_5min,
     },
     {
       title: "10min Avg Humi",
@@ -209,6 +286,58 @@ function Dashboard() {
       {/* 상단 헤더 */}
       <Header />
 
+      {isOffline && (
+        <div className="fixed inset-0 z-[10000] bg-black/40 backdrop-blur-md flex items-center justify-center">
+          <div className="bg-white rounded-[24px] shadow-2xl w-[320px] px-8 py-8 text-center">
+            <div className="text-[36px] mb-3">🌐</div>
+
+            <h2 className="text-[22px] font-bold mb-2 text-gray-800">
+              네트워크 불안정
+            </h2>
+
+            <p className="text-[13px] leading-5 text-gray-500">
+              인터넷 연결이 원활하지 않습니다.
+              <br />
+              기기의 와이파이 또는 셀룰러 상태를 확인해 주세요.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {!isOffline && isServerDown && (
+        <div className="fixed inset-0 z-[10000] bg-black/40 backdrop-blur-md flex items-center justify-center">
+          <div className="bg-white rounded-[24px] shadow-2xl w-[340px] px-8 py-8 text-center">
+            <div className="text-[36px] mb-3">📡</div>
+
+            <h2 className="text-[22px] font-bold mb-2 text-gray-800">
+              서버 통신 불안정
+            </h2>
+
+            <p className="text-[13px] leading-5 text-gray-500 mb-6">
+              서버와 데이터를 주고받을 수 없습니다.
+              <br />
+              서비스 제공 서버의 점검 상태를 확인해 주세요.
+            </p>
+
+            <button
+              onClick={fetchSensorData}
+              className="
+          w-full
+          h-[46px]
+          bg-[#46A2F8]
+          text-white
+          font-bold
+          rounded-xl
+          hover:bg-[#3294f2]
+          transition
+        "
+            >
+              서버 재연결 시도
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 2. 본문 컨테이너: flex-grow를 주어 푸터를 하단으로 밀어냄 */}
       <main className="flex-grow flex flex-col items-center pb-[100px] relative w-full">
         {/* 대시보드 특유의 배경 디자인 (파란 배경 등) */}
@@ -247,6 +376,7 @@ function Dashboard() {
               unit={card.unit}
               status={sensorData.status}
               trend={card.trend}
+              trendValue={card.trendValue}
               onClick={card.onClick}
             />
           ))}

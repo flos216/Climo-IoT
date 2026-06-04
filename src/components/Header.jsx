@@ -114,6 +114,8 @@ function Header() {
           setIsDarkMode(false);
           localStorage.setItem("theme", "light");
         }
+        // Dashboard에게 설정 변경 알림
+        window.dispatchEvent(new Event("configUpdated"));
 
         alert("설정이 성공적으로 저장되었습니다.");
         setIsModalOpen(false);
