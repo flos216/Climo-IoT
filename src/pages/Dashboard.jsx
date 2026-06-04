@@ -47,7 +47,6 @@ function Dashboard() {
   };
 
   const fetchSensorData = async () => {
-    // 💡 [1순위 체크] 인터넷 연결이 끊겨있다면 서버 요청을 아예 보내지 않고 차단
     if (!navigator.onLine) {
       setIsOffline(true);
       return;
@@ -61,7 +60,6 @@ function Dashboard() {
       }
 
       const data = await response.json();
-      console.log("실제 센서 데이터:", data);
 
       const newStatus = (data.status ?? "").trim();
       const newAlertLevel = (data.alert_level ?? "").trim();
@@ -159,8 +157,6 @@ function Dashboard() {
         temp_alert: data.temp_alert ?? "-",
         humi_warn: data.humi_warn ?? "-",
         humi_alert: data.humi_alert ?? "-",
-        tempTrend,
-        humiTrend,
       });
     } catch (error) {
       console.error("임계치 설정 불러오기 실패:", error);
