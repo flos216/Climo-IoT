@@ -22,6 +22,8 @@ function Dashboard() {
     status: "-",
     tempTrend: null,
     humiTrend: null,
+    tempTrendValue: null,
+    humiTrendValue: null,
   });
 
   const [config, setConfig] = useState({
@@ -36,6 +38,13 @@ function Dashboard() {
   const prevDataRef = useRef({
     temperature: null,
     humidity: null,
+  });
+  const lastTrendRef = useRef({
+    tempTrend: null,
+    humiTrend: null,
+    tempTrendValue: null,
+    humiTrendValue: null,
+    updatedAt: 0,
   });
 
   const showStatusAlert = () => {
@@ -70,7 +79,9 @@ function Dashboard() {
       const currentTemp = Number(data.temperature);
       const currentHumi = Number(data.humidity);
 
-      const tempTrend =
+      const now = Date.now();
+
+      let tempTrend =
         prevTemp === null || Number.isNaN(currentTemp)
           ? null
           : currentTemp > prevTemp
@@ -79,7 +90,7 @@ function Dashboard() {
               ? "down"
               : null;
 
-      const humiTrend =
+      let humiTrend =
         prevHumi === null || Number.isNaN(currentHumi)
           ? null
           : currentHumi > prevHumi
@@ -87,6 +98,29 @@ function Dashboard() {
             : currentHumi < prevHumi
               ? "down"
               : null;
+
+      const tempChange =
+        prevTemp === null || Number.isNaN(currentTemp)
+          ? null
+          : Number((currentTemp - prevTemp).toFixed(1));
+
+      const humiChange =
+        prevHumi === null || Number.isNaN(currentHumi)
+          ? null
+          : Number((currentHumi - prevHumi).toFixed(1));
+
+      if (tempTrend || humiTrend) {
+        lastTrendRef.current = {
+          tempTrend,
+          humiTrend,
+          tempTrendValue: tempChange,
+          humiTrendValue: humiChange,
+          updatedAt: now,
+        };
+      } else if (now - lastTrendRef.current.updatedAt < 30000) {
+        tempTrend = lastTrendRef.current.tempTrend;
+        humiTrend = lastTrendRef.current.humiTrend;
+      }
 
       prevDataRef.current = {
         temperature: currentTemp,
@@ -104,6 +138,8 @@ function Dashboard() {
         action_guide: data.action_guide ?? "",
         tempTrend,
         humiTrend,
+        tempTrendValue: lastTrendRef.current.tempTrendValue,
+        humiTrendValue: lastTrendRef.current.humiTrendValue,
       });
 
       if (
@@ -163,35 +199,6 @@ function Dashboard() {
     }
   };
 
-  // 모바일 진입 및 세로 모드 실시간 센싱을 위한 useEffect
-  useEffect(() => {
-    // 터치 기기(pointer: coarse)이면서 세로 모드(orientation: portrait)인지 판정하는 표준 미디어 쿼리
-    const orientationQuery = window.matchMedia(
-      "(pointer: coarse) and (orientation: portrait)",
-    );
-
-    // 방향 변경 이벤트가 발생했을 때 상태를 동적으로 업데이트하는 핸들러
-    const handleOrientationChange = (e) => {
-      if (e.matches) {
-        setShowNotice(true);
-      } else {
-        setShowNotice(false); // 가로로 돌리면 자동으로 안내 창을 닫음
-      }
-    };
-
-    // 마운트 시점 최초 1회 조건 검사
-    if (orientationQuery.matches) {
-      setShowNotice(true);
-    }
-
-    // 미디어 쿼리 리스너 등록
-    orientationQuery.addEventListener("change", handleOrientationChange);
-
-    // 메모리 누수 방지를 위한 클린업
-    return () =>
-      orientationQuery.removeEventListener("change", handleOrientationChange);
-  }, []);
-
   useEffect(() => {
     fetchSensorData();
     fetchConfig();
@@ -199,7 +206,7 @@ function Dashboard() {
     const interval = setInterval(() => {
       fetchSensorData();
       fetchConfig();
-    }, 3000);
+    }, 10000);
 
     const handleConfigUpdated = () => {
       fetchSensorData();
@@ -235,14 +242,14 @@ function Dashboard() {
       value: sensorData.temperature,
       unit: "°C",
       trend: sensorData.tempTrend,
-      trendValue: sensorData.temp_diff_5min,
+      trendValue: sensorData.tempTrendValue,
     },
     {
       title: "Now Humi",
       value: sensorData.humidity,
       unit: "%",
       trend: sensorData.humiTrend,
-      trendValue: sensorData.humidity_diff_5min,
+      trendValue: sensorData.humiTrendValue,
     },
     {
       title: "10min Avg Humi",

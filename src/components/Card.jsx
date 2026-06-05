@@ -91,7 +91,7 @@ function Card({ title, value, unit, status, onClick, trend, trendValue }) {
                   z-[9999]
                 "
               >
-                5분 전 대비 {trendValue}
+                5분 전 대비 {Math.abs(trendValue)}
                 {unit} {trend === "up" ? "상승" : "하락"}
               </span>
             </span>
